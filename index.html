@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<html lang="ru" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Телекуч | Ресторан европейской кухни</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        gold: {
+                            DEFAULT: '#D4AF37',
+                            light: '#F3E5AB',
+                            dark: '#AA8C2C',
+                        },
+                        darkBg: '#121212',
+                        cardBg: '#1E1E1E',
+                        cardHover: '#2A2A2A'
+                    },
+                    fontFamily: {
+                        serif: ['Playfair Display', 'serif'],
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+    <!-- QRious for QR Generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #121212; color: #F3F4F6; }
+        h1, h2, h3, .font-serif { font-family: 'Playfair Display', serif; }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #121212; }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #D4AF37; }
+    </style>
+</head>
+<body class="bg-darkBg text-gray-100 min-h-screen selection:bg-gold selection:text-black pb-24">
+
+    <!-- Header -->
+    <header class="sticky top-0 z-40 backdrop-blur-md bg-darkBg/80 border-b border-gray-800 transition-all">
+        <div class="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-gold-dark via-gold to-gold-light flex items-center justify-center shadow-lg shadow-gold/20">
+                    <i data-lucide="utensils" class="w-5 h-5 text-black"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-serif font-bold tracking-wider text-gold-light">ТЕЛЕКУЧ</h1>
+                    <p class="text-xs text-gray-400 uppercase tracking-widest" data-i18n="subtitle">Европейская кухня</p>
+                </div>
+            </div>
+
+            <div class="flex items-center space-x-3">
+                <!-- Lang Switcher -->
+                <div class="flex bg-cardBg border border-gray-700/60 rounded-full p-1 text-xs font-medium">
+                    <button onclick="setLang('ru')" id="lang-ru" class="px-2.5 py-1 rounded-full transition-all bg-gold text-black font-semibold">RU</button>
+                    <button onclick="setLang('kz')" id="lang-kz" class="px-2.5 py-1 rounded-full transition-all text-gray-400 hover:text-white">KZ</button>
+                    <button onclick="setLang('en')" id="lang-en" class="px-2.5 py-1 rounded-full transition-all text-gray-400 hover:text-white">EN</button>
+                </div>
+
+                <!-- QR Modal Trigger -->
+                <button onclick="openQRModal()" class="p-2.5 bg-cardBg border border-gray-700 hover:border-gold rounded-full text-gold transition-all shadow-md relative group">
+                    <i data-lucide="qr-code" class="w-5 h-5"></i>
+                </button>
+
+                <!-- Waiter Call Button -->
+                <button onclick="callWaiter()" class="p-2.5 bg-gold hover:bg-gold-light text-black rounded-full transition-all shadow-lg shadow-gold/20 flex items-center justify-center font-bold">
+                    <i data-lucide="bell" class="w-5 h-5"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Search Bar -->
+        <div class="max-w-4xl mx-auto px-4 pb-4">
+            <div class="relative">
+                <i data-lucide="search" class="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"></i>
+                <input type="text" id="searchInput" oninput="filterDishes()" placeholder="Поиск блюда или ингредиента..." 
+                    class="w-full bg-cardBg border border-gray-800 rounded-xl pl-10 pr-4 py-2.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-gold transition-all">
+            </div>
+        </div>
+
+        <!-- Categories Tabs -->
+        <div class="max-w-4xl mx-auto px-4 pb-3 overflow-x-auto no-scrollbar flex space-x-2">
+            <button onclick="filterCategory('all')" id="cat-all" class="cat-btn px-4 py-2 rounded-xl text-sm font-medium whitespace-nowrap transition-all bg-gold text-black shadow-md">
+                <span data-i18n="cat_all">Всё меню</span>
+            </button>
+            <button onclick="filterCategory('starters')" id="cat-starters" class="cat-btn px-4 py-2 rounded-xl text-sm font-medium whitespace-nowrap transition-all bg-cardBg text-gray-300 hover:bg-cardHover border border-gray-800">
+                <span data-i18n="cat_starters">Закуски</span>
+            </button>
+            <button onclick="filterCategory('mains')" id="cat-mains" class="cat-btn px-4 py-2 rounded-xl text-sm font-medium whitespace-nowrap transition-all bg-cardBg text-gray-300 hover:bg-cardHover border border-gray-800">
+                <span data-i18n="cat_mains">Основные блюда</span>
+            </button>
+            <button onclick="filterCategory('desserts')" id="cat-desserts" class="cat-btn px-4 py-2 rounded-xl text-sm font-medium whitespace-nowrap transition-all bg-cardBg text-gray-300 hover:bg-cardHover border border-gray-800">
+                <span data-i18n="cat_desserts">Десерты</span>
+            </button>
+            <button onclick="filterCategory('drinks')" id="cat-drinks" class="cat-btn px-4 py-2 rounded-xl text-sm font-medium whitespace-nowrap transition-all bg-cardBg text-gray-300 hover:bg-cardHover border border-gray-800">
+                <span data-i18n="cat_drinks">Напитки</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-4xl mx-auto px-4 pt-6">
+        <div id="dishesGrid" class="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <!-- Dishes injected via JS -->
+        </div>
+        <div id="noResults" class="hidden text-center py-16">
+            <i data-lucide="search-x" class="w-12 h-12 text-gray-600 mx-auto mb-3"></i>
+            <p class="text-gray-400" data-i18n="no_results">Ничего не найдено по вашему запросу</p>
+        </div>
+    </main>
+
+    <!-- Footer Action Bar -->
+    <footer class="fixed bottom-0 left-0 right-0 z-30 bg-darkBg/90 backdrop-blur-lg border-t border-gray-800 py-3 px-4">
+        <div class="max-w-4xl mx-auto flex items-center justify-between">
+            <div class="flex items-center space-x-2 text-xs text-gray-400">
+                <span class="inline-block w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span data-i18n="table_num">Стол №4 • Ресторан Телекуч</span>
+            </div>
+            <button onclick="openBookingModal()" class="px-4 py-2 bg-gradient-to-r from-gold-dark to-gold text-black rounded-xl font-semibold text-xs tracking-wide shadow-lg shadow-gold/10 hover:opacity-90 transition-all flex items-center space-x-1.5">
+                <i data-lucide="calendar-days" class="w-4 h-4"></i>
+                <span data-i18n="book_table">Бронь стола</span>
+            </button>
+        </div>
+    </footer>
+
+    <!-- Modal Dish Details -->
+    <div id="dishModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="bg-cardBg border border-gray-800 w-full max-w-lg rounded-2xl overflow-hidden shadow-2xl relative animate-in fade-in zoom-in duration-200">
+            <button onclick="closeDishModal()" class="absolute top-3 right-3 z-10 p-2 bg-black/60 backdrop-blur-md rounded-full text-white hover:bg-black transition-all">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+            <div class="relative h-64 w-full">
+                <img id="modalImg" src="" alt="" class="w-full h-full object-cover">
+                <div class="absolute inset-0 bg-gradient-to-t from-cardBg via-transparent to-transparent"></div>
+                <div id="modalBadge" class="absolute bottom-4 left-4 px-3 py-1 bg-gold text-black text-xs font-bold rounded-lg shadow"></div>
+            </div>
+            <div class="p-6">
+                <div class="flex justify-between items-start mb-2">
+                    <h2 id="modalTitle" class="text-2xl font-serif font-bold text-white"></h2>
+                    <span id="modalWeight" class="text-xs bg-gray-800 text-gold px-2.5 py-1 rounded-md font-mono"></span>
+                </div>
+                <p id="modalDesc" class="text-gray-300 text-sm mb-4 leading-relaxed"></p>
+                <div class="mb-6">
+                    <h4 class="text-xs font-semibold text-gold uppercase tracking-wider mb-2" data-i18n="ingredients_title">Состав и ингредиенты:</h4>
+                    <div id="modalIngredients" class="flex flex-wrap gap-1.5"></div>
+                </div>
+                <div class="flex items-center justify-between pt-4 border-t border-gray-800">
+                    <span id="modalPrice" class="text-2xl font-bold text-gold"></span>
+                    <button onclick="closeDishModal()" class="px-6 py-2.5 bg-gray-800 hover:bg-gray-700 text-white rounded-xl text-sm font-medium transition-all" data-i18n="close_btn">Закрыть</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- QR Code Modal -->
+    <div id="qrModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="bg-cardBg border border-gray-800 w-full max-w-sm rounded-2xl p-6 text-center shadow-2xl relative">
+            <button onclick="closeQRModal()" class="absolute top-3 right-3 p-2 bg-gray-800 rounded-full text-white hover:bg-gray-700 transition-all">
+                <i data-lucide="x" class="w-4 h-4"></i>
+            </button>
+            <h3 class="text-xl font-serif font-bold text-gold mb-1" data-i18n="qr_title">Меню по QR-коду</h3>
+            <p class="text-xs text-gray-400 mb-6" data-i18n="qr_subtitle">Сканируйте камеру телефона для доступа к меню</p>
+            <div class="bg-white p-4 rounded-2xl inline-block shadow-lg mb-6">
+                <canvas id="qrcodeCanvas"></canvas>
+            </div>
+            <button onclick="downloadQR()" class="w-full py-3 bg-gold hover:bg-gold-light text-black font-semibold rounded-xl text-sm transition-all shadow-lg shadow-gold/20 flex items-center justify-center space-x-2">
+                <i data-lucide="download" class="w-4 h-4"></i>
+                <span data-i18n="qr_download">Скачать QR-код</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Booking Modal -->
+    <div id="bookingModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="bg-cardBg border border-gray-800 w-full max-w-md rounded-2xl p-6 shadow-2xl relative">
+            <button onclick="closeBookingModal()" class="absolute top-3 right-3 p-2 bg-gray-800 rounded-full text-white hover:bg-gray-700 transition-all">
+                <i data-lucide="x" class="w-4 h-4"></i>
+            </button>
+            <h3 class="text-xl font-serif font-bold text-gold mb-1" data-i18n="booking_title">Бронирование столика</h3>
+            <p class="text-xs text-gray-400 mb-6" data-i18n="booking_subtitle">Зарезервируйте лучший столик в ресторане Телекуч</p>
+            <form onsubmit="handleBooking(event)" class="space-y-4 text-left">
+                <div>
+                    <label class="block text-xs font-medium text-gray-400 mb-1" data-i18n="book_name">Ваше имя</label>
+                    <input type="text" required class="w-full bg-darkBg border border-gray-800 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-gold" placeholder="Ертөре">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-gray-400 mb-1" data-i18n="book_phone">Номер телефона</label>
+                    <input type="tel" required class="w-full bg-darkBg border border-gray-800 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-gold" placeholder="+7 (700) 000-00-00">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-medium text-gray-400 mb-1" data-i18n="book_date">Дата</label>
+                        <input type="date" required class="w-full bg-darkBg border border-gray-800 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-gold">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-400 mb-1" data-i18n="book_time">Время</label>
+                        <input type="time" required class="w-full bg-darkBg border border-gray-800 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-gold">
+                    </div>
+                </div>
+                <button type="submit" class="w-full py-3 bg-gold hover:bg-gold-light text-black font-semibold rounded-xl text-sm transition-all shadow-lg shadow-gold/20 mt-2" data-i18n="book_submit">Забронировать</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Notification Toast -->
+    <div id="toast" class="fixed top-20 left-1/2 -translate-x-1/2 z-50 bg-cardBg border border-gold text-white px-5 py-3 rounded-xl shadow-2xl flex items-center space-x-3 transition-all duration-300 opacity-0 pointer-events-none">
+        <i data-lucide="check-circle-2" class="w-5 h-5 text-gold"></i>
+        <span id="toastText" class="text-sm font-medium">Официант вызван к вашему столику!</span>
+    </div>
+
+    <script>
+        // Translations Dictionary
+        const translations = {
+            ru: {
+                subtitle: "Европейская кухня",
+                cat_all: "Всё меню",
+                cat_starters: "Закуски",
+                cat_mains: "Основные блюда",
+                cat_desserts: "Десерты",
+                cat_drinks: "Напитки",
+                no_results: "Ничего не найдено по вашему запросу",
+                table_num: "Стол №4 • Ресторан Телекуч",
+                book_table: "Бронь стола",
+                ingredients_title: "Состав и ингредиенты:",
+                close_btn: "Закрыть",
+                qr_title: "Меню по QR-коду",
+                qr_subtitle: "Сканируйте камеру телефона для доступа к меню",
+                qr_download: "Скачать QR-код",
+                booking_title: "Бронирование столика",
+                booking_subtitle: "Зарезервируйте лучший столик в ресторане Телекуч",
+                book_name: "Ваше имя",
+                book_phone: "Номер телефона",
+                book_date: "Дата",
+                book_time: "Время",
+                book_submit: "Забронировать",
+                waiter_called: "Официант вызван к вашему столику!",
+                booking_success: "Столик успешно забронирован! Ждем вас."
+            },
+            kz: {
+                subtitle: "Еуропа асханасы",
+                cat_all: "Барлық мәзір",
+                cat_starters: "Тілғатерлер",
+                cat_mains: "Негізгі тағамдар",
+                cat_desserts: "Десерттер",
+                cat_drinks: "Сусындар",
+                no_results: "Іздеу бойынша ешнәрсе табылмады",
+                table_num: "Үстел №4 • Телекуч мейрамханасы",
+                book_table: "Үстел брондау",
+                ingredients_title: "Құрамы мен ингредиенттер:",
+                close_btn: "Жабу",
+                qr_title: "QR-код арқылы мәзір",
+                qr_subtitle: "Мәзірге өту үшін телефон камерасымен сканерлеңіз",
+                qr_download: "QR-кодты жүктеу",
+                booking_title: "Үстелді брондау",
+                booking_subtitle: "Телекуч мейрамханасынан ең жақсы үстелді брондаңыз",
+                book_name: "Сіздің атыңыз",
+                book_phone: "Телефон нөмірі",
+                book_date: "Күні",
+                book_time: "Уақыты",
+                book_submit: "Брондау",
+                waiter_called: "Даяшы сіздің үстеліңізге шақырылды!",
+                booking_success: "Үстел сәтті брондалды! Сізді күтеміз."
+            },
+            en: {
+                subtitle: "European Cuisine",
+                cat_all: "Full Menu",
+                cat_starters: "Starters",
+                cat_mains: "Main Dishes",
+                cat_desserts: "Desserts",
+                cat_drinks: "Drinks",
+                no_results: "Nothing found for your request",
+                table_num: "Table №4 • Telekuch Restaurant",
+                book_table: "Book Table",
+                ingredients_title: "Ingredients & Composition:",
+                close_btn: "Close",
+                qr_title: "QR Menu",
+                qr_subtitle: "Scan with your phone camera to access the menu",
+                qr_download: "Download QR Code",
+                booking_title: "Table Reservation",
+                booking_subtitle: "Reserve the best table at Telekuch restaurant",
+                book_name: "Your Name",
+                book_phone: "Phone Number",
+                book_date: "Date",
+                book_time: "Time",
+                book_submit: "Book Now",
+                waiter_called: "Waiter has been called to your table!",
+                booking_success: "Table successfully booked! We look forward to seeing you."
+            }
+        };
+
+        let currentLang = 'ru';
+
+        // Dishes Data
+        const dishes = [
+            // Закуски
+            {
+                id: 1,
+                category: 'starters',
+                name: { ru: 'Карпаччо из мраморной говядины', kz: 'Мәрмәр сиыр етінен карпаччо', en: 'Marble Beef Carpaccio' },
+                desc: { 
+                    ru: 'Тончайшие слайсы выдержанной говядины с трюфельным маслом, рукколой и выдержанным пармезаном.', 
+                    kz: 'Трюфель майымен, рукколамен және пармезан ірімшігімен жұқа тілімделген сиыр еті.', 
+                    en: 'Ultra-thin slices of aged beef with truffle oil, arugula and aged parmesan.' 
+                },
+                price: '5 200 ₸',
+                weight: '180 г',
+                badge: { ru: 'HIT', kz: 'ХИТ', en: 'HIT' },
+                image: 'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=600&q=80',
+                ingredients: {
+                    ru: ['Мраморная говядина', 'Руккола', 'Трюфельное масло', 'Пармезан', 'Каперсы'],
+                    kz: ['Мәрмәр сиыр еті', 'Руккола', 'Трюфель майы', 'Пармезан', 'Каперстер'],
+                    en: ['Marble beef', 'Arugula', 'Truffle oil', 'Parmesan', 'Capers']
+                }
+            },
+            {
+                id: 2,
+                category: 'starters',
+                name: { ru: 'Тартар из свежего лосося', kz: 'Жаңа лосось тартары', en: 'Fresh Salmon Tartare' },
+                desc: { 
+                    ru: 'Кубики премиального атлантического лосося, авокадо, шалота и каперсов под цитрусовым дрессингом.', 
+                    kz: 'Цитрус соусымен атлантикалық лосось, авокадо және шалот пиязы.', 
+                    en: 'Diced premium Atlantic salmon with avocado, shallots and capers under citrus dressing.' 
+                },
+                price: '5 800 ₸',
+                weight: '190 г',
+                badge: { ru: 'FRESH', kz: 'БАЛҒЫН', en: 'FRESH' },
+                image: 'https://images.unsplash.com/photo-1534422298391-e4f8c172dddb?auto=format&fit=crop&w=600&q=80',
+                ingredients: {
+                    ru: ['Атлантический лосось', 'Свежий авокадо', 'Лук Шалот', 'Икра летучей рыбы', 'Тосты из бриоши'],
+                    kz: ['Атлантикалық лосось', 'Авокадо', 'Шалот пиязы', 'Ұшатын балық уылдырығы', 'Бриошь тосттары'],
+                    en: ['Atlantic salmon', 'Fresh avocado', 'Shallot onion', 'Flying fish roe', 'Brioche toast']
+                }
+            },
+            {
+                id: 3,
+                category: 'starters',
+                name: { ru: 'Сырное ассорти с мёдом и орехами', kz: 'Бал және жаңғақ қосылған ірімшік жиынтығы', en: 'Cheese Assortment with Honey' },
+                desc: { 
+                    ru: 'Элитные сорта сыров: Дорблю, Камамбер, Пармезан, подаются с грецким орехом, мёдом и виноградом.', 
+                    kz: 'Дорблю, Камамбер, Пармезан ірімшіктері, жаңғақ, бал және жүзіммен беріледі.', 
+                    en: 'Elite cheeses: Dorblu, Camembert, Parmesan, served with walnuts, honey and grapes.' 
+                },
+                price: '6 400 ₸',
+                weight: '230 г',
+                badge: { ru: 'WINE PAIR', kz: 'ШАРАПҚА', en: 'WINE PAIR' },
+                image: 'https://images.unsplash.com/photo-1631379578550-7038263db699?auto=format&fit=crop&w=600&q=80',
+                ingredients: {
+                    ru: ['Сыр Дорблю', 'Камамбер', 'Пармезан', 'Грецкий орех', 'Цветочный мёд', 'Виноград'],
+                    kz: ['Дорблю ірімшігі', 'Камамбер', 'Пармезан', 'Жаңғақ', 'Бал', 'Жүзім'],
+                    en: ['Dorblu cheese', 'Camembert', 'Parmesan', 'Walnut', 'Flower honey', 'Grapes']
+                }
+            },
+            {
+                id: 4,
+                category: 'starters',
+                name: { ru: 'Буррата с томатами черри и песто', kz: 'Черри қызанағы мен песто қосылған буррата', en: 'Burrata with Cherry Tomatoes' },
+                desc: { 
+                    ru: 'Нежный сыр буррата с вялеными томатами, сладкими черри, кедровыми орехами и соусом песто.', 
+                    kz: 'Құрғақ қызанақ, тәтті черри және песто соусы қосылған нәзік буррата ірімшігі.', 
+                    en: 'Delicate burrata cheese with sun-dried tomatoes, sweet cherry, pine nuts and pesto sauce.' 
+                },
+                price: '4 900 ₸',
+                weight: '250 г',
+                badge: { ru: 'VEGAN', kz: 'ВЕГАН', en: 'VEGAN' },
+                image: 'https://images.unsplash.com/photo-1592417817098-8f3d69204b56?auto=format&fit=crop&w=600&q=80',
+                ingredients: {
+                    ru: ['Сыр буррата', 'Томаты черри', 'Соус песто', 'Кедровые орехи', 'Оливковое масло экстра вирджин'],
+                    kz: ['Буррата ірімшігі', 'Черри қызанағы', 'Песто соусы', 'Кедр жаңғағы', 'Зәйтүн майы'],
+                    en: ['Burrata cheese', 'Cherry tomatoes', 'Pesto sauce', 'Pine nuts', 'Extra virgin olive oil']
+                }
+            },
+
+            // Основные блюда
+            {
+                id: 5,
+                category: 'mains',
+                name: { ru: 'Утиная грудка Магре с вишней', kz: 'Шие қосылған үйрек төс еті Магре', en: 'Duck Breast Magret with Cherry' },
+                desc: { 
+                    ru: 'Сочная утиная грудка су-вид с хрустящей корочкой, карамелизованной грушей и густым соусом из свежей вишни.', 
+                    kz: 'Қытырлақ қабығы бар су-вид үйрек төс еті, карамелденген алмұрт және шие соусы.', 
+                    en: 'Juicy sous-vide duck breast with crispy crust, caramelized pear and fresh cherry sauce.' 
+                },
+                price: '8 200 ₸',
+                weight: '280 г',
+                badge: { ru: 'SIGNATURE', kz: 'ФИРМАЛЫҚ', en: 'SIGNATURE' },
+                image: 'https://images.unsplash.com/photo-1514944298352-f4d732112d74?auto=format&fit=crop&w=600&q=80',
+                ingredients: {
+                    ru: ['Утиная грудка', 'Свежая вишня', 'Портвейн', 'Груша', 'Звёздчатый анис'],
+                    kz: ['Үйрек төс еті', 'Шие', 'Портвейн', 'Алмұрт', 'Бадьян'],
+                    en: ['Duck breast', 'Fresh cherry', 'Port wine', 'Pear', 'Star anise']
+                }
+            },
+            {
+                id: 6,
+                category: 'mains',
+                name: { ru: 'Филе лосося на гриле со спаржей', kz: 'Құлмақ пен спаржа қосылған лосось филесі', en: 'Grilled Salmon Fillet with Asparagus' },
+                desc: { 
+                    ru: 'Нежное филе норвежского лосося на гриле с хрустящей спаржей и соусом лимонный берблан.', 
+                    kz: 'Қытырлақ спаржа және лимон берблан соусы қосылған норвегиялық лосось филесі.', 
+                    en: 'Delicate grilled Norwegian salmon fillet with crispy asparagus and lemon beurre blanc sauce.' 
+                },
+                price: '9 500 ₸',
+                weight: '310 г',
+                badge: { ru: 'HEALTHY', kz: 'ПАЙДАЛЫ', en: 'HEALTHY' },
+                image: 'https://images.unsplash.com/photo-1467003909585-2f8a72700288?auto=format&fit=crop&w=600&q=80',
+                ingredients: {
+                    ru: ['Филе лосося', 'Свежая спаржа', 'Сливочное масло', 'Лимонный сок', 'Тимьян'],
+                    kz: ['Лосось филесі', 'Спаржа', 'Сары май', 'Лимон шырыны', 'Тимьян'],
+                    en: ['Salmon fillet', 'Fresh asparagus', 'Butter', 'Lemon juice', 'Thyme']
+                }
+            },
+            {
+                id: 7,
+                category: 'mains',
+                name: { ru: 'Стейк Рибай Прайм', kz: 'Рибай Прайм стейгі', en: 'Ribeye Prime Steak' },
+                desc: { 
+                    ru: 'Классический мраморный стейк из отборной говядины зернового откорма со специями и розмарином.', 
+                    kz: 'Дәмдеуіштер мен розмарин қосылған таңдаулы сиыр етінен жасалған мәрмәр стейк.', 
+                    en: 'Classic marbled steak from selected grain-fed beef with spices and rosemary.' 
+                },
+                price: '14 500 ₸',
+                weight: '380 г',
+                badge: { ru: 'CHEF CHOICE', kz: 'АСХАНА ТАҢДАУЫ', en: 'CHEF CHOICE' },
+                image: 'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=600&q=80',
+                ingredients: {
+                    ru: ['Мраморная говядина Рибай', 'Розмарин', 'Чеснок', 'Морская соль', 'Сливочное масло'],
+                    kz: ['Рибай сиыр еті', 'Розмарин', 'Сарымсақ', 'Теңіз тұзы', 'Сары май'],
+                    en: ['Ribeye beef', 'Rosemary', 'Garlic', 'Sea salt', 'Butter']
+                }
+            },
+            {
+                id: 8,
+                category: 'mains',
+                name: { ru: 'Осьминог на гриле с мини-картофелем', kz: 'Шағын картоп қосылған грильдегі сегізаяқ', en: 'Grilled Octopus with Baby Potatoes' },
+                desc: { 
+                    ru: 'Миссурийский осьминог на гриле, подается с запеченным мини-картофелем, томатами конфи и соусом чимичурри.', 
+                    kz: 'Грильде пісірілген сегізаяқ, мини-картоп және чимичурри соусымен беріледі.', 
+                    en: 'Grilled octopus served with baked baby potatoes, confit tomatoes and chimichurri sauce.' 
+                },
+                price: '11 800 ₸',
+                weight: '310 г',
+                badge: { ru: 'PREMIUM', kz: 'ПРЕМИУМ', en: 'PREMIUM' },
+                image: 'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=600&q=80',
+                ingredients: {
+                    ru: ['Осьминог', 'Мини-картофель', 'Томаты конфи', 'Соус чимичурри', 'Оливковое масло'],
+                    kz: ['Сегізаяқ', 'Мини-картоп', 'Қызанақ конфи', 'Чимичурри соусы', 'Зәйтүн майы'],
+                    en: ['Octopus', 'Baby potatoes', 'Confit tomatoes', 'Chimichurri sauce', 'Olive oil']
+                }
+            },
+            {
+                id: 9,
+                category: 'mains',
+                name: { ru: 'Томлёные говяжьи щёчки с пюре', kz: 'Пюре қосылған бұқтырылған сиыр еті беттері', en: 'Braised Beef Cheeks with Mashed Potatoes' },
+                desc: { 
+                    ru: 'Нежнейшие говяжьи щёчки, которые тушились более 6 часов в красном вине, на подушке из воздушного картофельного пюре.', 
+                    kz: 'Қызыл шарапта 6 сағаттан астам бұқтырылған жұмсақ сиыр еті және картоп пюресі.', 
+                    en: 'Tender beef cheeks braised for over 6 hours in red wine, served on airy mashed potatoes.' 
+                },
+                price: '7 900 ₸',
+                weight: '360 г',
+                badge: { ru: 'TENDER', kz: 'ЖҰМСАҚ', en: 'TENDER' },
+                image: 'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=600&q=80',
+                ingredients: {
+                    ru: ['Говяжьи щёчки', 'Картофельное пюре', 'Соус демигляс', 'Красное сухое вино', 'Корень сельдерея'],
+                    kz: ['Сиыр еті беттері', 'Картоп пюресі', 'Демигляс соусы', 'Қызыл шарап', 'Селдерей түбіршігі'],
+                    en: ['Beef cheeks', 'Mashed potatoes', 'Demi-glace sauce', 'Red dry wine', 'Celery root']
+                }
+            },
+            {
+                id: 10,
+                category: 'mains',
+                name: { ru: 'Ризотто с белыми грибами и трюфелем', kz: 'Ақ саңырауқұлақ пен трюфель қосылған ризотто', en: 'Porcini Mushroom & Truffle Risotto' },
+                desc: { 
+                    ru: 'Кремовое ризотто Арборио с ароматными белыми грибами, пармезаном и капелькой трюфельного крема.', 
+                    kz: 'Хош иісті ақ саңырауқұлақтар, пармезан және трюфель кремі қосылған кремовый ризотто.', 
+                    en: 'Creamy Arborio risotto with fragrant porcini mushrooms, parmesan and a touch of truffle cream.' 
+                },
+                price: '6 400 ₸',
+                weight: '320 г',
+                badge: { ru: 'VEGETARIAN', kz: 'ВЕГЕТАРИАН', en: 'VEGETARIAN' },
+                image: 'https://images.unsplash.com/photo-1633964913295-ceb43826e7c9?auto=format&fit=crop&w=600&q=80',
+                ingredients: {
+                    ru: ['Рис Арборио', 'Белые грибы', 'Сыр Пармезан', 'Трюфельная паста', 'Сливки 33%'],
+                    kz: ['Арборио күріші', 'Ақ саңырауқұлақтар', 'Пармезан ірімшігі', 'Трюфель пастасы', 'Кілегей 33%'],
+                    en: ['Arborio rice', 'Porcini mushrooms', 'Parmesan cheese', 'Truffle paste', 'Cream 33%']
+                }
+            },
+            {
+                id: 11,
+                category: 'mains',
+                name: { ru: 'Паста Карбонара с гуанчале', kz: 'Гуанчале қосылған Карбонара пастасы', en: 'Pasta Carbonara with Guanciale' },
+                desc: { 
+                    ru: 'Традиционная итальянская паста с сыровялеными свиными щечками гуанчале, яичным желтком и пекорино романо.', 
+                    kz: 'Гуанчале шошқа еті, жұмыртқа сарысы және пекорино романо қосылған дәстүрлі паста.', 
+                    en: 'Traditional Italian pasta with cured pork cheeks guanciale, egg yolk and pecorino romano.' 
+                },
+                price: '5 600 ₸',
+                weight: '340 г',
+                badge: { ru: 'CLASSIC', kz: 'КЛАССИК', en: 'CLASSIC' },
+                image: 'https://images.unsplash.com/photo-1612874742237-6526221588e3?auto=format&fit=crop&w=600&q=80',
+                ingredients: {
+                    ru: ['Паста Тальятелле', 'Гуанчале', 'Яичный желток', 'Сыр Пекорино Романо', 'Черный перец'],
+                    kz: ['Тальятелле пастасы', 'Гуанчале', 'Жұмыртқа сарысы', 'Пекорино Романо ірімшігі', 'Қара бұрыш'],
+                    en: ['Tagliatelle pasta', 'Guanciale', 'Egg yolk', 'Pecorino Romano cheese', 'Black pepper']
+                }
+            },
+            {
+                id: 12,
+                category: 'mains',
+                name: { ru: 'Дорадо на гриле с травами', kz: 'Шөптер қосылған грильдегі дорадо', en: 'Grilled Dorado with Herbs' },
+                desc: { 
+                    ru: 'Цельная средиземноморская дорадо на гриле с оливковым маслом, лимоном и ароматным розмарином.', 
+                    kz: 'Зәйтүн майы, лимон және розмарин қосылған жерортатеңіздік дорадо балығы.', 
+                    en: 'Whole Mediterranean grilled dorado with olive oil, lemon and aromatic rosemary.' 
+                },
+                price: '7 800 ₸',
+                weight: '350 г',
+                badge: { ru: 'FRESH', kz: 'БАЛҒЫН', en: 'FRESH' },
+                image: 'https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?auto=format&fit=crop&w=600&q=80',
+                ingredients: {
+                    ru: ['Дорадо', 'Розмарин', 'Лимон', 'Оливковое масло', 'Морская соль'],
+                    kz: ['Дорадо балығы', 'Розмарин', 'Лимон', 'Зәйтүн майы', 'Теңіз тұзы'],
+                    en: ['Dorado fish', 'Rosemary', 'Lemon', 'Olive oil', 'Sea salt']
+                }
+            },
+
+            // Десерты
+            {
+                id: 13,
+                category: 'desserts',
+                name: { ru: 'Баскский чизкейк', kz: 'Баск чизкейкі', en: 'Basque Cheesecake' },
+                desc: { 
+                    ru: 'Обожженный сливочный чизкейк с карамельной корочкой снаружи и нежнейшей кремовой текстурой внутри.', 
+                    kz: 'Сыртында карамель қабығы және ішінде нәзік кремді құрылымы бар чизкейк.', 
+                    en: 'Burnt creamy cheesecake with a caramel crust outside and delicate creamy texture inside.' 
+                },
+                price: '3 200 ₸',
+                weight: '160 г',
+                badge: { ru: 'POPULAR', kz: 'ТАНЫМАЛ', en: 'POPULAR' },
+                image: 'https://images.unsplash.com/photo-1533134242443-d4fd215305ad?auto=format&fit=crop&w=600&q=80',
+                ingredients: {
+                    ru: ['Сливочный сыр Креметте', 'Сливки 33%', 'Яйца куриные', 'Сахарный песок', 'Ванильный экстракт'],
+                    kz: ['Креметте ірімшігі', 'Кілегей 33%', 'Жұмыртқа', 'Қант', 'Ваниль сығындысы'],
+                    en: ['Cream cheese Cremette', 'Cream 33%', 'Eggs', 'Sugar', 'Vanilla extract']
+                }
+            },
+            {
+                id: 14,
+                category: 'desserts',
+                name: { ru: 'Шоколадный фондан', kz: 'Шоколадты фондан', en: 'Chocolate Fondant' },
+                desc: { 
+                    ru: 'Горячий шоколадный десерт с жидкой начинкой из бельгийского шоколада, подается с шариком ванильного мороженого.', 
+                    kz: 'Іші сұйық бельгиялық шоколады бар ыстық десерт, ванильді балмұздақпен беріледі.', 
+                    en: 'Hot chocolate dessert with liquid Belgian chocolate filling, served with vanilla ice cream.' 
+                },
+                price: '3 400 ₸',
+                weight: '150 г',
+                badge: { ru: 'HOT', kz: 'ЫСТЫҚ', en: 'HOT' },
+                image: 'https://images.unsplash.com/photo-1606313564200-e75d5e30476c?auto=format&fit=crop&w=600&q=80',
+                ingredients: {
+                    ru: ['Бельгийский тёмный шоколад', 'Сливочное масло', 'Яйца', 'Какао-порошок', 'Шарик мороженого'],
+                    kz: ['Бельгиялық қара шоколад', 'Сары май', 'Жұмыртқа', 'Какао', 'Балмұздақ'],
+                    en: ['Belgian dark chocolate', 'Butter', 'Eggs', 'Cocoa powder', 'Ice cream scoop']
+                }
+            },
+            {
+                id: 15,
+                category: 'desserts',
+                name: { ru: 'Классический Тирамису', kz: 'Классикалық Тирамису', en: 'Classic Tiramisu' },
+                desc: { 
+                    ru: 'Итальянский десерт из печенья Савоярди, пропитанного эспрессо и ликёром, с кремом из сыра Маскарпоне.', 
+                    kz: 'Эспрессо мен ликерге малынған Савоярди печеньесі және Маскарпоне кремі.', 
+                    en: 'Italian dessert made of Savoiardi cookies soaked in espresso and liqueur, with Mascarpone cheese cream.' 
+                },
+                price: '3 500 ₸',
+                weight: '170 г',
+                badge: { ru: 'ITALIAN', kz: 'ИТАЛЬЯН', en: 'ITALIAN' },
+                image: 'https://images.unsplash.com/photo-1571877227200-a0d98ea607e9?auto=format&fit=crop&w=600&q=80',
+                ingredients: {
+                    ru: ['Сыр Маскарпоне', 'Печенье Савоярди', 'Кофе Эспрессо', 'Какао', 'Куриный желток'],
+                    kz: ['Маскарпоне ірімшігі', 'Савоярди печеньесі', 'Эспрессо кофесі', 'Какао', 'Жұмыртқа сарысы'],
+                    en: ['Mascarpone cheese', 'Savoiardi cookies', 'Espresso coffee', 'Cocoa', 'Egg yolk']
+                }
+            },
+
+            // Напитки
+            {
+                id: 16,
+                category: 'drinks',
+                name: { ru: 'Лимонад Маракуйя-Имбирь', kz: 'Маркуйя-Івир лимонады', en: 'Passion Fruit & Ginger Lemonade' },
+                desc: { 
+                    ru: 'Освежающий авторский лимонад с пюре маракуйи, пряным имбирным фрешем и газированной водой.', 
+                    kz: 'Маркуйя пюресі, имбирь фреші және газдалған су қосылған сергітетін лимонад.', 
+                    en: 'Refreshing signature lemonade with passion fruit puree, spicy ginger fresh and sparkling water.' 
+                },
+                price: '2 100 ₸',
+                weight: '400 мл',
+                badge: { ru: 'COOL', kz: 'СЕРГІТЕТІН', en: 'COOL' },
+                image: 'https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?auto=format&fit=crop&w=600&q=80',
+                ingredients: {
+                    ru: ['Пюре маракуйи', 'Свежий имбирь', 'Лимонный фреш', 'Мята', 'Газированная вода'],
+                    kz: ['Маркуйя пюресі', 'Імбиір', 'Лимон шырыны', 'Жанаргүл', 'Газдалған су'],
+                    en: ['Passion fruit puree', 'Fresh ginger', 'Lemon fresh', 'Mint', 'Sparkling water']
+                }
+            },
+            {
+                id: 17,
+                category: 'drinks',
+                name: { ru: 'Раф Солёная карамель', kz: 'Тұзды карамель Раф кофесі', en: 'Salted Caramel Raf' },
+                desc: { 
+                    ru: 'Густой и согревающий кофейный напиток на сливках с добавлением натуральной солёной карамели.', 
+                    kz: 'Табиғи тұзды карамель қосылған қою әрі жылы кофе сусыны.', 
+                    en: 'Thick and warming coffee drink on cream with natural salted caramel.' 
+                },
+                price: '1 900 ₸',
+                weight: '300 мл',
+                badge: { ru: 'COFFEE', kz: 'КОФЕ', en: 'COFFEE' },
+                image: 'https://images.unsplash.com/photo-1541167760496-1628856ab772?auto=format&fit=crop&w=600&q=80',
+                ingredients: {
+                    ru: ['Эспрессо', 'Сливки 11%', 'Солёная карамель', 'Ванильный сироп'],
+                    kz: ['Эспрессо', 'Кілегей 11%', 'Тұзды карамель', 'Ваниль сиропы'],
+                    en: ['Espresso', 'Cream 11%', 'Salted caramel', 'Vanilla syrup']
+                }
+            },
+            {
+                id: 18,
+                category: 'drinks',
+                name: { ru: 'Чай Гранат-Брусника', kz: 'Анар мен брусника шайы', en: 'Pomegranate & Lingonberry Tea' },
+                desc: { 
+                    ru: 'Ароматный фруктовый чай с соком граната, спелой брусникой, свежим розмарином и мёдом.', 
+                    kz: 'Анар шырыны, піскен брусника, розмарин және бал қосылған хош иісті шай.', 
+                    en: 'Fragrant fruit tea with pomegranate juice, ripe lingonberries, fresh rosemary and honey.' 
+                },
+                price: '2 300 ₸',
+                weight: '600 мл',
+                badge: { ru: 'TEA', kz: 'ШАЙ', en: 'TEA' },
+                image: 'https://images.unsplash.com/photo-1576092768241-dec231879fc3?auto=format&fit=crop&w=600&q=80',
+                ingredients: {
+                    ru: ['Гранатовый сок', 'Брусника', 'Розмарин', 'Мёд', 'Чёрный чай Ассам'],
+                    kz: ['Анар шырыны', 'Брусника', 'Розмарин', 'Бал', 'Ассам қара шайы'],
+                    en: ['Pomegranate juice', 'Lingonberries', 'Rosemary', 'Honey', 'Assam black tea']
+                }
+            },
+            {
+                id: 19,
+                category: 'drinks',
+                name: { ru: 'Фреш Апельсин', kz: 'Апельсин фреші', en: 'Fresh Orange Juice' },
+                desc: { 
+                    ru: '100% натуральный свежевыжатый сок из спелых испанских апельсинов без добавления сахара.', 
+                    kz: 'Қант қосылмаған табиғи таза сығылған апельсин шырыны.', 
+                    en: '100% natural freshly squeezed juice from ripe Spanish oranges without added sugar.' 
+                },
+                price: '2 200 ₸',
+                weight: '300 мл',
+                badge: { ru: 'VITAMINS', kz: 'ВИТАМИН', en: 'VITAMINS' },
+                image: 'https://images.unsplash.com/photo-1613478223719-2ab802602423?auto=format&fit=crop&w=600&q=80',
+                ingredients: {
+                    ru: ['Свежие испанские апельсины'],
+                    kz: ['Жаңа апельсиндер'],
+                    en: ['Fresh Spanish oranges']
+                }
+            }
+        ];
+
+        let activeCategory = 'all';
+
+        function renderDishes() {
+            const grid = document.getElementById('dishesGrid');
+            const noResults = document.getElementById('noResults');
+            const query = document.getElementById('searchInput').value.toLowerCase();
+
+            grid.innerHTML = '';
+
+            const filtered = dishes.filter(dish => {
+                const matchesCat = activeCategory === 'all' || dish.category === activeCategory;
+                const name = dish.name[currentLang].toLowerCase();
+                const desc = dish.desc[currentLang].toLowerCase();
+                const ingredients = dish.ingredients[currentLang].join(' ').toLowerCase();
+                const matchesQuery = name.includes(query) || desc.includes(query) || ingredients.includes(query);
+                return matchesCat && matchesQuery;
+            });
+
+            if (filtered.length === 0) {
+                noResults.classList.remove('hidden');
+                return;
+            } else {
+                noResults.classList.add('hidden');
+            }
+
+            filtered.forEach(dish => {
+                const card = document.createElement('div');
+                card.className = 'bg-cardBg border border-gray-800/80 rounded-2xl overflow-hidden hover:border-gold/50 transition-all duration-300 flex flex-col justify-between shadow-lg group cursor-pointer';
+                card.onclick = () => openDishModal(dish.id);
+
+                card.innerHTML = `
+                    <div>
+                        <div class="relative h-48 w-full overflow-hidden">
+                            <img src="${dish.image}" alt="${dish.name[currentLang]}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                            <div class="absolute inset-0 bg-gradient-to-t from-cardBg via-transparent to-transparent"></div>
+                            <div class="absolute top-3 left-3 flex gap-1.5">
+                                <span class="px-2.5 py-1 bg-black/60 backdrop-blur-md text-gold text-[10px] font-bold rounded-lg border border-gold/20 shadow">${dish.badge[currentLang]}</span>
+                            </div>
+                            <div class="absolute top-3 right-3">
+                                <span class="px-2.5 py-1 bg-black/70 backdrop-blur-md text-white text-xs font-mono rounded-lg border border-gray-700">${dish.weight}</span>
+                            </div>
+                        </div>
+                        <div class="p-5">
+                            <h3 class="text-lg font-serif font-bold text-white mb-1.5 group-hover:text-gold transition-colors">${dish.name[currentLang]}</h3>
+                            <p class="text-xs text-gray-400 line-clamp-2 mb-4 leading-relaxed">${dish.desc[currentLang]}</p>
+                            <div class="flex flex-wrap gap-1 mb-2">
+                                ${dish.ingredients[currentLang].slice(0, 3).map(ing => `<span class="text-[10px] bg-darkBg text-gray-300 px-2 py-0.5 rounded border border-gray-800">${ing}</span>`).join('')}
+                                ${dish.ingredients[currentLang].length > 3 ? `<span class="text-[10px] bg-darkBg text-gray-500 px-1.5 py-0.5 rounded">+${dish.ingredients[currentLang].length - 3}</span>` : ''}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="px-5 pb-5 pt-2 flex items-center justify-between border-t border-gray-800/60 mt-auto">
+                        <span class="text-xs text-gray-400 italic" data-i18n="click_details">Нажмите для деталей</span>
+                        <span class="text-lg font-bold text-gold">${dish.price}</span>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+            lucide.createIcons();
+        }
+
+        function filterCategory(cat) {
+            activeCategory = cat;
+            document.querySelectorAll('.cat-btn').forEach(btn => {
+                btn.className = "cat-btn px-4 py-2 rounded-xl text-sm font-medium whitespace-nowrap transition-all bg-cardBg text-gray-300 hover:bg-cardHover border border-gray-800";
+            });
+            const activeBtn = document.getElementById(`cat-${cat}`);
+            if (activeBtn) {
+                activeBtn.className = "cat-btn px-4 py-2 rounded-xl text-sm font-medium whitespace-nowrap transition-all bg-gold text-black shadow-md";
+            }
+            renderDishes();
+        }
+
+        function filterDishes() {
+            renderDishes();
+        }
+
+        function setLang(lang) {
+            currentLang = lang;
+            ['ru', 'kz', 'en'].forEach(l => {
+                const btn = document.getElementById(`lang-${l}`);
+                if (l === lang) {
+                    btn.className = "px-2.5 py-1 rounded-full transition-all bg-gold text-black font-semibold";
+                } else {
+                    btn.className = "px-2.5 py-1 rounded-full transition-all text-gray-400 hover:text-white";
+                }
+            });
+
+            // Update static strings
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (translations[lang][key]) {
+                    el.innerText = translations[lang][key];
+                }
+            });
+            
+            // Update placeholders
+            document.getElementById('searchInput').placeholder = lang === 'ru' ? 'Поиск блюда или ингредиента...' : lang === 'kz' ? 'Тағамды немесе ингредиентті іздеу...' : 'Search dish or ingredient...';
+
+            renderDishes();
+        }
+
+        // Modal Dish
+        function openDishModal(id) {
+            const dish = dishes.find(d => d.id === id);
+            if (!dish) return;
+
+            document.getElementById('modalImg').src = dish.image;
+            document.getElementById('modalBadge').innerText = dish.badge[currentLang];
+            document.getElementById('modalTitle').innerText = dish.name[currentLang];
+            document.getElementById('modalWeight').innerText = dish.weight;
+            document.getElementById('modalDesc').innerText = dish.desc[currentLang];
+            document.getElementById('modalPrice').innerText = dish.price;
+
+            const ingContainer = document.getElementById('modalIngredients');
+            ingContainer.innerHTML = dish.ingredients[currentLang].map(ing => `<span class="text-xs bg-darkBg text-gold px-2.5 py-1 rounded-lg border border-gray-800">${ing}</span>`).join('');
+
+            document.getElementById('dishModal').classList.remove('hidden');
+        }
+
+        function closeDishModal() {
+            document.getElementById('dishModal').classList.add('hidden');
+        }
+
+        // QR Modal
+        let qrInstance = null;
+        function openQRModal() {
+            document.getElementById('qrModal').classList.remove('hidden');
+            if (!qrInstance) {
+                qrInstance = new QRious({
+                    element: document.getElementById('qrcodeCanvas'),
+                    value: window.location.href,
+                    size: 180,
+                    level: 'H',
+                    background: '#ffffff',
+                    foreground: '#121212'
+                });
+            }
+        }
+
+        function closeQRModal() {
+            document.getElementById('qrModal').classList.add('hidden');
+        }
+
+        function downloadQR() {
+            const canvas = document.getElementById('qrcodeCanvas');
+            const link = document.createElement('a');
+            link.download = 'telekuch-menu-qr.png';
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        }
+
+        // Booking Modal
+        function openBookingModal() {
+            document.getElementById('bookingModal').classList.remove('hidden');
+        }
+
+        function closeBookingModal() {
+            document.getElementById('bookingModal').classList.add('hidden');
+        }
+
+        function handleBooking(e) {
+            e.preventDefault();
+            closeBookingModal();
+            showToast(translations[currentLang].booking_success);
+        }
+
+        function callWaiter() {
+            showToast(translations[currentLang].waiter_called);
+        }
+
+        function showToast(text) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastText').innerText = text;
+            toast.classList.remove('opacity-0', 'pointer-events-none');
+            toast.classList.add('opacity-100');
+            setTimeout(() => {
+                toast.classList.remove('opacity-100');
+                toast.classList.add('opacity-0', 'pointer-events-none');
+            }, 3000);
+        }
+
+        // Init
+        window.onload = () => {
+            renderDishes();
+            lucide.createIcons();
+        };
+    </script>
+</body>
+</html>
